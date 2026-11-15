@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="fi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Metsäpalsta</title><style>
+:root{font-family:system-ui,-apple-system,sans-serif;color:#18392a;background:#f4f7f2}*{box-sizing:border-box}body{margin:0}header{background:#205a3b;color:white;padding:17px 18px;display:flex;justify-content:space-between;align-items:center}h1{font-size:21px;margin:0}h2{font-size:18px;margin:0 0 12px}main{max-width:960px;margin:auto;padding:14px 14px 90px}.panel{background:white;border-radius:15px;padding:15px;margin-bottom:13px;box-shadow:0 2px 12px #14341b12}button,.filebutton{border:0;border-radius:10px;background:#256443;color:white;padding:12px 14px;font-weight:650;font-size:15px;cursor:pointer;display:inline-block}button.secondary,.filebutton.secondary{background:#e7efe8;color:#1b5136}button.danger{background:#a73d3d}.actions{display:flex;flex-wrap:wrap;gap:8px}input,select,textarea{width:100%;border:1px solid #bdcfc1;border-radius:9px;padding:11px;font:inherit;background:white;color:#1d392a}label{display:block;font-weight:600;margin:10px 0 5px}textarea{min-height:85px}small,.muted{color:#607369}#map{width:100%;height:350px;background:#e6eee5;border-radius:12px;touch-action:pan-y;display:block}#map .leaflet-interactive{cursor:pointer}#map text{font:12px system-ui;fill:#21442c;pointer-events:none}nav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #dbe5da;display:flex;justify-content:space-around;padding:9px 5px env(safe-area-inset-bottom);z-index:2}nav button{background:transparent;color:#2d6145;padding:9px 8px;font-size:13px}.hidden{display:none!important}.entry{border-top:1px solid #e2e9e0;padding:11px 0}.entry:first-child{border-top:0}.entry strong{display:block}.pill{font-size:12px;color:#366145;background:#e7f0e8;border-radius:20px;padding:4px 8px;display:inline-block}.hint{padding:11px;background:#eef4eb;border-radius:10px;margin:10px 0;font-size:14px}.row{display:flex;justify-content:space-between;align-items:center;gap:10px}.row>*{min-width:0}.empty{padding:20px;text-align:center;color:#61756a}input[type=file]{display:none}@media(min-width:700px){#map{height:490px}}@media print{header,nav,.actions,form,.no-print{display:none!important}main{padding:0}.panel{box-shadow:none;border:1px solid #ddd}}
+#map{height:430px;touch-action:auto}#map .leaflet-container{font:inherit}.maptools{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.maptools button{font-size:13px;padding:10px}#mapMessage{font-size:13px;color:#526c5b;margin-top:7px}@media(min-width:700px){#map{height:550px}}
+
+/* Leaflet-kartan varmistustyylit: estää karttapalojen karkaamisen Androidissa,
+   vaikka ulkoinen Leaflet CSS ei latautuisi. */
+#map{position:relative!important;overflow:hidden!important;isolation:isolate;contain:paint;touch-action:none!important}
+#map .leaflet-container{position:relative;overflow:hidden;width:100%;height:100%;background:#e6eee5;outline:0;touch-action:none}
+#map .leaflet-pane,#map .leaflet-tile,#map .leaflet-marker-icon,#map .leaflet-marker-shadow,#map .leaflet-tile-container,#map .leaflet-pane>svg,#map .leaflet-pane>canvas,#map .leaflet-zoom-box,#map .leaflet-image-layer,#map .leaflet-layer{position:absolute;left:0;top:0}
+#map .leaflet-tile{width:256px;height:256px;max-width:none!important;max-height:none!important;visibility:inherit!important;border:0}
+#map .leaflet-tile-container{pointer-events:none}
+#map .leaflet-map-pane{position:absolute;left:0;top:0}
+#map .leaflet-control-container{position:absolute;inset:0;pointer-events:none}
+#map .leaflet-control{position:relative;z-index:800;pointer-events:auto;clear:both}
+#map .leaflet-top{position:absolute;top:10px;z-index:1000}#map .leaflet-bottom{position:absolute;bottom:0;z-index:1000}#map .leaflet-left{left:10px}#map .leaflet-right{right:0}
+#map .leaflet-top .leaflet-control{margin-bottom:10px}#map .leaflet-bottom .leaflet-control{margin-bottom:0}
+#map .leaflet-control-zoom{background:#fff;border:2px solid #ffffffb3;border-radius:5px;box-shadow:0 1px 5px #0004}
+#map .leaflet-control-zoom a{display:block;width:30px;height:30px;line-height:30px;text-align:center;text-decoration:none;color:#205a3b;background:white;font:bold 22px Arial;border-bottom:1px solid #ddd}
+#map .leaflet-control-attribution{background:#fffd;font:10px Arial;padding:2px 5px}
+#map .leaflet-pane>svg{overflow:hidden}#map .leaflet-overlay-pane svg path{pointer-events:visiblePainted}
+#map .leaflet-popup-pane{position:absolute;left:0;top:0;z-index:700}
+
+/* Pidä metsäkuviot aina OSM-karttatiilien yläpuolella myös zoomauksen aikana. */
+#map{position:relative;overflow:hidden;isolation:isolate}
+#map .leaflet-pane{position:absolute;left:0;top:0}
+#map .leaflet-map-pane{z-index:1}
+#map .leaflet-tile-pane{z-index:200}
+#map .leaflet-overlay-pane{z-index:400}
+#map .leaflet-shadow-pane{z-index:500}
+#map .leaflet-marker-pane{z-index:600}
+#map .leaflet-tooltip-pane{z-index:650}
+#map .leaflet-popup-pane{z-index:700}
+#map .leaflet-overlay-pane canvas{position:absolute;left:0;top:0;pointer-events:auto}
+#map .leaflet-overlay-pane svg{position:absolute;left:0;top:0;overflow:hidden}
+</style><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyo4v+YxN+ZZZc=" crossorigin=""><script defer src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script><script defer src="https://cdn.jsdelivr.net/npm/proj4@2.11.0/dist/proj4.js"></script><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#205a3b"></head><body><header><h1>🌲 Metsäpalsta</h1><span id="status" style="font-size:12px">Paikallinen</span></header><main>
+<section id="view-map"><div class="panel"><div class="row"><h2>Omat palstat</h2><button class="secondary" onclick="showView('settings')">Tuo palstoja</button></div><div id="map" aria-label="OpenStreetMap-kartta"></div><div class="maptools"><button onclick="fetchForest()">Hae alueen metsäkuviot</button><button class="secondary" onclick="locateMe()">Oma sijainti</button><button class="secondary" onclick="zoomParcels()">Näytä omat palstat</button></div><div id="mapMessage">OSM-kartta tarvitsee internetyhteyden. Metsäkeskuksen metsäkuvioita voi hakea näkyvältä kartta-alueelta ja valita omat kuviot napauttamalla.</div><div class="hint">Metsäkuviot eivät ole kiinteistörajoja eivätkä osoita omistusta. Valitse vain omat kuviot. Kartta ja rajapintahaku tarvitsevat verkkoyhteyden; tallennetut kirjaukset toimivat paikallisesti.</div></div><div id="parcelList" class="panel"></div></section>
+<section id="view-parcel" class="hidden"><div class="panel"><button class="secondary" onclick="showView('map')">← Kartalle</button><h2 id="parcelTitle" style="margin-top:15px"></h2><div id="parcelMeta" class="muted"></div><div class="actions" style="margin-top:12px"><button onclick="newAction()">+ Kirjaa toimenpide</button><button class="secondary" onclick="editParcel()">Muokkaa nimeä</button></div></div><div class="panel"><h2>Toimenpidehistoria</h2><div id="parcelActions"></div></div></section>
+<section id="view-edit" class="hidden"><div class="panel"><h2 id="formTitle">Uusi toimenpide</h2><form id="actionForm"><label for="actionParcel">Palsta</label><select id="actionParcel" required></select><label for="actionDate">Päivämäärä</label><input id="actionDate" type="date" required><label for="actionType">Toimenpide</label><select id="actionType"><option>Taimikonhoito</option><option>Harvennus</option><option>Istutus</option><option>Hakkuu</option><option>Raivaus</option><option>Lannoitus</option><option>Ojitus</option><option>Tarkastus</option><option>Muu</option></select><label for="actionArea">Käsitelty pinta-ala (ha, vapaaehtoinen)</label><input id="actionArea" type="number" min="0" step="0.01" inputmode="decimal" placeholder="esim. 1,5"><label for="actionCost">Kustannus (€; vapaaehtoinen)</label><input id="actionCost" type="number" min="0" step="0.01" inputmode="decimal"><label for="actionNotes">Muistiinpanot</label><textarea id="actionNotes" placeholder="Mitä tehtiin?"></textarea><div class="actions" style="margin-top:15px"><button type="submit">Tallenna</button><button type="button" class="secondary" onclick="showView(selectedParcel?'parcel':'map')">Peruuta</button><button type="button" id="deleteAction" class="danger hidden" onclick="removeAction()">Poista</button></div></form></div></section>
+<section id="view-report" class="hidden"><div class="panel"><h2>Toimenpideraportti</h2><label for="reportParcel">Palsta</label><select id="reportParcel" onchange="renderReport()"></select><label for="reportYear">Vuosi</label><select id="reportYear" onchange="renderReport()"></select><div class="actions" style="margin:14px 0"><button onclick="exportCSV()">Lataa CSV</button><button class="secondary" onclick="window.print()">Tulosta / Tallenna PDF</button></div><div id="reportContent"></div></div></section>
+<section id="view-settings" class="hidden"><div class="panel"><h2>Tuo omat metsäpalstat</h2><p class="muted">Valitse GeoJSON (.geojson tai .json), jossa on Polygon- tai MultiPolygon-kohteita. Tuonti lisää palstat nykyisiin tietoihin.</p><label class="filebutton" for="geoFile">Valitse GeoJSON-tiedosto</label><input id="geoFile" type="file" accept=".geojson,.json,application/geo+json,application/json" onchange="importGeo(event)"><div class="hint">Palstan nimeksi valitaan ensisijaisesti ominaisuus name, nimi, kuvio tai id. Voit muuttaa nimen myöhemmin.</div></div><div class="panel"><h2>Varmuuskopiot</h2><p class="muted">Siirrä tiedot puhelimen ja tietokoneen välillä lataamalla varmuuskopio ja avaamalla se toisessa laitteessa.</p><div class="actions"><button onclick="backup()">Lataa varmuuskopio (.json)</button><label class="filebutton secondary" for="backupFile">Palauta varmuuskopio</label><input id="backupFile" type="file" accept=".json,application/json" onchange="restore(event)"></div><div class="hint"><strong>Huomio:</strong> Palautus korvaa tämän selaimen nykyiset tiedot. Ota ensin varmuuskopio. Selaimen tietojen tyhjennys voi poistaa paikalliset kirjaukset.</div></div><div class="panel"><h2>Palstojen hallinta</h2><div id="settingsParcels"></div><div class="actions"><button class="secondary" onclick="addManualParcel()">+ Lisää palsta ilman karttarajaa</button></div></div></section>
+</main><nav><button onclick="showView('map')">🗺️ Kartta</button><button onclick="newAction()">➕ Kirjaa</button><button onclick="showView('report')">📋 Raportit</button><button onclick="showView('settings')">⚙️ Tiedot</button></nav>
+<script>
+'use strict';const KEY='metsapalsta_v1';let db={version:1,parcels:[],actions:[]},selectedParcel=null,editingAction=null;const $=id=>document.getElementById(id);const uid=()=>globalThis.crypto?.randomUUID?.()||('id-'+Date.now()+'-'+Math.random().toString(36).slice(2));const escapeHTML=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+try{const saved=JSON.parse(localStorage.getItem(KEY)||'null');if(saved&&Array.isArray(saved.parcels)&&Array.isArray(saved.actions))db=saved}catch(e){alert('Tallennettujen tietojen lukeminen epäonnistui.')}function save(){try{localStorage.setItem(KEY,JSON.stringify(db));$('status').textContent='Tallennettu laitteelle'}catch(e){alert('Tallennus epäonnistui. Tee varmuuskopio tai vapauta selaimen tallennustilaa.')}}function showView(view){for(const el of document.querySelectorAll('main>section'))el.classList.add('hidden');$('view-'+view).classList.remove('hidden');if(view==='map')renderMap();if(view==='parcel')renderParcel();if(view==='report')renderReport();if(view==='settings')renderSettings();window.scrollTo(0,0)}
+function polygonRings(g){if(!g)return[];if(g.type==='Polygon')return g.coordinates.slice(0,1);if(g.type==='MultiPolygon')return g.coordinates.map(p=>p[0]);return[]}
+let leafletMap=null,ownLayer=null,remoteLayer=null,remoteFeatures=[],mapStarted=false;
+function initMap(){
+ if(leafletMap||!window.L){if(!window.L)$('mapMessage').textContent='Karttakirjaston lataus epäonnistui. Päivitä sivu.';return;}
+ leafletMap=L.map('map',{zoomAnimation:false,fadeAnimation:false,markerZoomAnimation:false,preferCanvas:true}).setView([61.7,26.8],9);
+ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(leafletMap);
+ ownLayer=L.geoJSON(null,{style:{color:'#146c43',weight:3,fillColor:'#66a66c',fillOpacity:.3},onEachFeature:(f,l)=>l.on('click',()=>openParcel(f.properties.localId))}).addTo(leafletMap);
+ remoteLayer=L.geoJSON(null,{style:{color:'#d96a0b',weight:3,fillColor:'#f6a623',fillOpacity:.32},onEachFeature:(f,l)=>l.on('click',()=>{
+ const name=String(f.properties?.standnumber??f.properties?.stand_number??f.properties?.id??f.id??'Metsäkuvio');
+ if(!confirm('Lisätäänkö metsäkuvio '+name+' omiin palstoihin? Varmista että alue on sinun.'))return;
+ const sourceId=String(f.id??f.properties?.id??'');if(sourceId&&db.parcels.some(p=>p.sourceId===sourceId)){alert('Kuvio on jo tallennettu.');return;}
+ db.parcels.push({id:uid(),name:'Kuvio '+name,geometry:f.geometry,sourceId});save();renderMap();
+ })}).addTo(leafletMap);
+ renderMap();
+}
+function renderMap(){if(!leafletMap){initMap();if(!leafletMap){renderParcelList();return}}ownLayer.clearLayers();for(const p of db.parcels){if(!p.geometry)continue;try{ownLayer.addData({type:'Feature',properties:{localId:p.id},geometry:p.geometry})}catch(e){}}renderParcelList();setTimeout(()=>leafletMap.invalidateSize(),80);if(!mapStarted){mapStarted=true;if(ownLayer.getLayers().length)zoomParcels()}}
+function renderParcelList(){$('parcelList').innerHTML='<h2>Omat palstat ('+db.parcels.length+')</h2>'+(db.parcels.length?db.parcels.map(p=>'<div class="entry row"><div><strong>'+escapeHTML(p.name)+'</strong><small>'+db.actions.filter(a=>a.parcelId===p.id).length+' toimenpidettä</small></div><button class="secondary" data-open="'+escapeHTML(p.id)+'">Avaa</button></div>').join(''):'<div class="empty">Hae metsäkuviot kartalta tai tuo GeoJSON-tiedosto Tiedot-välilehdeltä.</div>');$('parcelList').querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>openParcel(b.dataset.open))}
+function zoomParcels(){if(leafletMap&&ownLayer.getLayers().length)leafletMap.fitBounds(ownLayer.getBounds(),{padding:[25,25],maxZoom:16})}
+function locateMe(){if(!navigator.geolocation){alert('Paikannus ei ole käytettävissä.');return}navigator.geolocation.getCurrentPosition(p=>{leafletMap.setView([p.coords.latitude,p.coords.longitude],15);L.circleMarker([p.coords.latitude,p.coords.longitude],{radius:7,color:'#2366bf'}).addTo(leafletMap).bindPopup('Sijaintini').openPopup()},e=>alert('Paikannus epäonnistui: '+e.message),{enableHighAccuracy:true,timeout:15000})}
+
+// WFS-palvelut voivat palauttaa koordinaatit lon/lat, lat/lon tai EPSG:3067 -järjestyksessä.
+function normalizeForestFeature(f, viewBounds) {
+ if (!f?.geometry || !['Polygon','MultiPolygon'].includes(f.geometry.type)) return null;
+ const geometry=f.geometry;
+ const first=geometry.type==='Polygon'?geometry.coordinates?.[0]?.[0]:geometry.coordinates?.[0]?.[0]?.[0];
+ if(!Array.isArray(first)||!Number.isFinite(+first[0])||!Number.isFinite(+first[1]))return null;
+ let mode='lonlat';
+ if(Math.abs(first[0])>180||Math.abs(first[1])>90) mode='tm35';
+ else if(Math.abs(first[0])<=90&&Math.abs(first[1])<=180) {
+   // Valitse järjestys vertaamalla kartan keskipisteeseen.
+   const center=viewBounds.getCenter();
+   const d1=Math.abs(first[0]-center.lng)+Math.abs(first[1]-center.lat);
+   const d2=Math.abs(first[1]-center.lng)+Math.abs(first[0]-center.lat);
+   if(d2+0.01<d1)mode='latlon';
+ }
+ if(mode==='tm35'&&!window.proj4)throw Error('Koordinaattimuunnoksen kirjasto ei latautunut. Päivitä sivu internetyhteydellä.');
+ if(mode==='tm35')proj4.defs('EPSG:3067','+proj=utm +zone=35 +ellps=GRS80 +units=m +no_defs +type=crs');
+ const convert=p=>{
+  let xy=mode==='tm35'?proj4('EPSG:3067','EPSG:4326',[+p[0],+p[1]]):mode==='latlon'?[+p[1],+p[0]]:[+p[0],+p[1]];
+  if(!xy.every(Number.isFinite)||Math.abs(xy[0])>180||Math.abs(xy[1])>90)throw Error('Virheellinen koordinaatti');
+  return xy;
+ };
+ const coords=geometry.type==='Polygon'?geometry.coordinates.map(r=>r.map(convert)):geometry.coordinates.map(poly=>poly.map(r=>r.map(convert)));
+ return {...f,geometry:{type:geometry.type,coordinates:coords}};
+}
+async function fetchForest(){
+ if(!leafletMap){alert('Kartta ei ole vielä latautunut.');return}
+ const b=leafletMap.getBounds();
+ if(leafletMap.getZoom()<12){alert('Lähennä karttaa ensin vähintään tasolle 12.');return}
+ const msg=$('mapMessage');
+ msg.textContent='Haetaan Metsäkeskuksen metsäkuvioita…';
+ const endpoint='https://avoin.metsakeskus.fi/rajapinnat/v2/stand/ows';
+ try {
+  const cap=await fetch(endpoint+'?service=WFS&version=2.0.0&request=GetCapabilities');
+  if(!cap.ok)throw Error('Rajapinnan ominaisuustietojen haku epäonnistui ('+cap.status+')');
+  const xml=new DOMParser().parseFromString(await cap.text(),'text/xml');
+  const types=[...xml.getElementsByTagNameNS('*','FeatureType')];
+  const type=types.map(t=>t.getElementsByTagNameNS('*','Name')[0]?.textContent).find(Boolean);
+  if(!type)throw Error('Rajapinnasta ei löytynyt kuviotasoa');
+  const bbox=[b.getWest(),b.getSouth(),b.getEast(),b.getNorth()].join(',')+',EPSG:4326';
+  const url=endpoint+'?service=WFS&version=2.0.0&request=GetFeature&typeNames='+encodeURIComponent(type)+'&outputFormat='+encodeURIComponent('application/json')+'&srsName=EPSG:4326&count=500&bbox='+encodeURIComponent(bbox);
+  const r=await fetch(url);
+  if(!r.ok)throw Error('Kuviohaku epäonnistui ('+r.status+')');
+  let geo;
+  try{geo=await r.json()}catch(e){throw Error('Palvelin ei palauttanut GeoJSONia')}
+  if(!Array.isArray(geo.features))throw Error('Palvelin ei palauttanut kuviolistaa');
+  let invalid=0;
+  const features=[];
+  for(const f of geo.features){try{const fixed=normalizeForestFeature(f,b);if(fixed)features.push(fixed);else invalid++}catch(e){invalid++;if(String(e.message).includes('kirjasto'))throw e}}
+  remoteLayer.clearLayers();
+  remoteFeatures=features;
+  remoteLayer.addData({type:'FeatureCollection',features});
+  const bounds=remoteLayer.getBounds();
+  if(features.length&&bounds.isValid()){
+    // Jos rajapinta palauttaa kuviot eri kohdasta, zoomaa löydettyihin kuvioihin.
+    if(!b.intersects(bounds))leafletMap.fitBounds(bounds,{padding:[25,25],maxZoom:15});
+    else leafletMap.invalidateSize();
+  }
+  msg.textContent='Rajapinta palautti '+geo.features.length+' kohdetta. Kartalle piirretty '+features.length+' kuviota.'+(invalid?' Ohitettu '+invalid+' virheellistä geometriaa.':'')+(geo.features.length>=500?' Näytetään enintään 500 kohdetta; lähennä karttaa.':'')+' Napauta oranssia kuviota.';
+ }catch(e){msg.textContent='Kuviohaku ei onnistunut: '+e.message}
+}
+
+function openParcel(id){selectedParcel=id;showView('parcel')}function renderParcel(){const p=db.parcels.find(p=>p.id===selectedParcel);if(!p){showView('map');return}$('parcelTitle').textContent=p.name;$('parcelMeta').textContent=p.geometry?'Karttaraja tallennettu':'Ei karttarajaa';const arr=db.actions.filter(a=>a.parcelId===p.id).sort((a,b)=>b.date.localeCompare(a.date));$('parcelActions').innerHTML=arr.length?arr.map(a=>'<div class="entry"><div class="row"><div><strong>'+escapeHTML(a.type)+'</strong><small>'+escapeHTML(a.date)+'</small></div><button class="secondary" data-edit="'+escapeHTML(a.id)+'">Muokkaa</button></div>'+(a.area?'<span class="pill">'+escapeHTML(a.area)+' ha</span> ':'')+(a.cost?'<span class="pill">'+escapeHTML(a.cost)+' €</span>':'')+'<p>'+escapeHTML(a.notes)+'</p></div>').join(''):'<div class="empty">Ei kirjattuja toimenpiteitä.</div>';$('parcelActions').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>editAction(b.dataset.edit))}
+function editParcel(){const p=db.parcels.find(p=>p.id===selectedParcel);if(!p)return;const name=prompt('Palstan nimi',p.name);if(name?.trim()){p.name=name.trim();save();renderParcel()}}function addManualParcel(){const name=prompt('Uuden palstan nimi');if(!name?.trim())return;const p={id:uid(),name:name.trim(),geometry:null};db.parcels.push(p);save();openParcel(p.id)}
+function newAction(){if(!db.parcels.length){alert('Lisää ensin vähintään yksi palsta.');showView('settings');return}editingAction=null;$('actionForm').reset();$('actionDate').value=new Date().toLocaleDateString('sv-SE');$('formTitle').textContent='Uusi toimenpide';$('deleteAction').classList.add('hidden');fillParcelSelect();if(selectedParcel)$('actionParcel').value=selectedParcel;showView('edit')}
+function fillParcelSelect(){ $('actionParcel').innerHTML=db.parcels.map(p=>'<option value="'+escapeHTML(p.id)+'">'+escapeHTML(p.name)+'</option>').join('')}
+function editAction(id){const a=db.actions.find(a=>a.id===id);if(!a)return;editingAction=id;selectedParcel=a.parcelId;fillParcelSelect();$('actionParcel').value=a.parcelId;$('actionDate').value=a.date;$('actionType').value=a.type;$('actionArea').value=a.area??'';$('actionCost').value=a.cost??'';$('actionNotes').value=a.notes??'';$('formTitle').textContent='Muokkaa toimenpidettä';$('deleteAction').classList.remove('hidden');showView('edit')}
+$('actionForm').onsubmit=e=>{e.preventDefault();const obj={id:editingAction||uid(),parcelId:$('actionParcel').value,date:$('actionDate').value,type:$('actionType').value,area:$('actionArea').value,cost:$('actionCost').value,notes:$('actionNotes').value.trim()};if(!obj.parcelId||!obj.date)return;if(editingAction){const i=db.actions.findIndex(a=>a.id===editingAction);if(i>=0)db.actions[i]=obj}else db.actions.push(obj);selectedParcel=obj.parcelId;save();showView('parcel')};function removeAction(){if(!editingAction||!confirm('Poistetaanko tämä toimenpide?'))return;db.actions=db.actions.filter(a=>a.id!==editingAction);editingAction=null;save();showView('parcel')}
+function renderReport(){const currentParcel=$('reportParcel').value||'all',currentYear=$('reportYear').value||'all';$('reportParcel').innerHTML='<option value="all">Kaikki palstat</option>'+db.parcels.map(p=>'<option value="'+escapeHTML(p.id)+'">'+escapeHTML(p.name)+'</option>').join('');$('reportParcel').value=db.parcels.some(p=>p.id===currentParcel)?currentParcel:'all';const years=[...new Set(db.actions.map(a=>a.date.slice(0,4)))].sort().reverse();$('reportYear').innerHTML='<option value="all">Kaikki vuodet</option>'+years.map(y=>'<option>'+escapeHTML(y)+'</option>').join('');$('reportYear').value=years.includes(currentYear)?currentYear:'all';const arr=filteredActions();const total=arr.reduce((s,a)=>s+(Number(a.cost)||0),0);$('reportContent').innerHTML='<p><strong>'+arr.length+'</strong> toimenpidettä · Kustannukset yhteensä <strong>'+total.toFixed(2)+' €</strong></p>'+(arr.length?arr.sort((a,b)=>b.date.localeCompare(a.date)).map(a=>'<div class="entry"><strong>'+escapeHTML(a.date)+' · '+escapeHTML(a.type)+'</strong><small>'+escapeHTML(db.parcels.find(p=>p.id===a.parcelId)?.name||'Tuntematon palsta')+'</small><div>'+escapeHTML(a.area||'–')+' ha · '+escapeHTML(a.cost||'–')+' €</div><div>'+escapeHTML(a.notes)+'</div></div>').join(''):'<div class="empty">Ei toimenpiteitä valitulla rajauksella.</div>')}
+function filteredActions(){return db.actions.filter(a=>($('reportParcel').value==='all'||a.parcelId===$('reportParcel').value)&&($('reportYear').value==='all'||a.date.startsWith($('reportYear').value)))}function download(name,text,type){const blob=new Blob([text],{type});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000)}function exportCSV(){const rows=[['Päivämäärä','Palsta','Toimenpide','Pinta-ala (ha)','Kustannus (€)','Muistiinpanot'],...filteredActions().map(a=>[a.date,db.parcels.find(p=>p.id===a.parcelId)?.name||'',a.type,a.area,a.cost,a.notes])];download('metsapalsta-raportti.csv','\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';')).join('\r\n'),'text/csv;charset=utf-8')}
+function backup(){download('metsapalsta-varmuuskopio-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify({...db,exportedAt:new Date().toISOString()},null,2),'application/json')}
+function validateBackup(d){if(!d||!Array.isArray(d.parcels)||!Array.isArray(d.actions))throw Error('Väärä varmuuskopion muoto');if(d.parcels.length>50000||d.actions.length>200000)throw Error('Liian suuri tiedosto');for(const p of d.parcels)if(typeof p.id!=='string'||typeof p.name!=='string'||(p.geometry&&!['Polygon','MultiPolygon'].includes(p.geometry.type)))throw Error('Virheelliset palstatiedot');for(const a of d.actions)if(typeof a.id!=='string'||typeof a.parcelId!=='string'||typeof a.date!=='string'||typeof a.type!=='string')throw Error('Virheelliset toimenpidetiedot');return{version:1,parcels:d.parcels,actions:d.actions}}
+async function restore(e){const f=e.target.files[0];e.target.value='';if(!f)return;try{const d=validateBackup(JSON.parse(await f.text()));if(!confirm('Korvataanko nykyiset '+db.parcels.length+' palstaa ja '+db.actions.length+' toimenpidettä varmuuskopion tiedoilla?'))return;db=d;selectedParcel=null;save();showView('map');alert('Varmuuskopio palautettu.')}catch(err){alert('Palautus epäonnistui: '+err.message)}}
+async function importGeo(e){const f=e.target.files[0];e.target.value='';if(!f)return;try{const json=JSON.parse(await f.text());const features=json.type==='FeatureCollection'?json.features:json.type==='Feature'?[json]:['Polygon','MultiPolygon'].includes(json.type)?[{geometry:json,properties:{}}]:[];if(!Array.isArray(features))throw Error('Virheellinen GeoJSON');let added=0;for(const feat of features){const g=feat?.geometry;if(!g||!['Polygon','MultiPolygon'].includes(g.type))continue;const rings=polygonRings(g);if(!rings.length||rings.some(r=>!Array.isArray(r)||r.length<4||r.some(c=>!Array.isArray(c)||!Number.isFinite(+c[0])||!Number.isFinite(+c[1]))))continue;const prop=feat.properties||{};const name=String(prop.name??prop.nimi??prop.kuvio??prop.id??feat.id??('Palsta '+(db.parcels.length+1)));db.parcels.push({id:uid(),name,geometry:g});added++}if(!added)throw Error('Tiedostossa ei ollut kelvollisia Polygon/MultiPolygon-kohteita');save();showView('map');alert('Tuotu '+added+' palstaa.')}catch(err){alert('Tuonti epäonnistui: '+err.message)}}
+function renderSettings(){$('settingsParcels').innerHTML=db.parcels.length?db.parcels.map(p=>'<div class="entry row"><span>'+escapeHTML(p.name)+'</span><button class="secondary" data-open="'+escapeHTML(p.id)+'">Avaa</button></div>').join(''):'<p class="muted">Ei palstoja.</p>';$('settingsParcels').querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>openParcel(b.dataset.open))}
+window.addEventListener('load',()=>{showView('map');if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});});
+</script></body></html>
