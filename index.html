@@ -34,12 +34,17 @@
 #map .leaflet-overlay-pane canvas{position:absolute;left:0;top:0;pointer-events:auto}
 #map .leaflet-overlay-pane svg{position:absolute;left:0;top:0;overflow:hidden}
 </style><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyo4v+YxN+ZZZc=" crossorigin=""><script defer src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script><script defer src="https://cdn.jsdelivr.net/npm/proj4@2.11.0/dist/proj4.js"></script><style>
-/* v6: karttatiilet alla, metsäkuviot erillisissä vektoritasoissa. */
-#map .leaflet-tile-pane{z-index:200!important}
-#map .leaflet-pane.leaflet-forest-pane{z-index:450!important}
-#map .leaflet-pane.leaflet-own-forest-pane{z-index:460!important}
-#map .leaflet-pane.leaflet-forest-pane svg,
-#map .leaflet-pane.leaflet-own-forest-pane svg{overflow:hidden}
+</style><style>
+/* v7: vain karttasäiliön rajaus ja paneiden kerrosjärjestys.
+   Leafletin virallinen CSS hoitaa SVG:n, transformit ja karttatiilet. */
+#map {position:relative!important;overflow:hidden!important;isolation:isolate;contain:layout paint;}
+#map .leaflet-map-pane {z-index:auto!important;}
+#map .leaflet-tile-pane {z-index:200!important;}
+#map .leaflet-overlay-pane {z-index:400!important;}
+#map .leaflet-forest-pane {z-index:450!important;visibility:visible!important;opacity:1!important;}
+#map .leaflet-own-forest-pane {z-index:460!important;visibility:visible!important;opacity:1!important;}
+#map .leaflet-forest-pane svg,#map .leaflet-own-forest-pane svg {visibility:visible!important;opacity:1!important;display:block!important;}
+#map .leaflet-forest-pane path,#map .leaflet-own-forest-pane path {visibility:visible!important;pointer-events:visiblePainted!important;}
 </style><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#205a3b"></head><body><header><h1>🌲 Metsäpalsta</h1><span id="status" style="font-size:12px">Paikallinen</span></header><main>
 <section id="view-map"><div class="panel"><div class="row"><h2>Omat palstat</h2><button class="secondary" onclick="showView('settings')">Tuo palstoja</button></div><div id="map" aria-label="OpenStreetMap-kartta"></div><div class="maptools"><button onclick="fetchForest()">Hae alueen metsäkuviot</button><button class="secondary" onclick="locateMe()">Oma sijainti</button><button class="secondary" onclick="zoomParcels()">Näytä omat palstat</button></div><div id="mapMessage">OSM-kartta tarvitsee internetyhteyden. Metsäkeskuksen metsäkuvioita voi hakea näkyvältä kartta-alueelta ja valita omat kuviot napauttamalla.</div><div class="hint">Metsäkuviot eivät ole kiinteistörajoja eivätkä osoita omistusta. Valitse vain omat kuviot. Kartta ja rajapintahaku tarvitsevat verkkoyhteyden; tallennetut kirjaukset toimivat paikallisesti.</div></div><div id="parcelList" class="panel"></div></section>
 <section id="view-parcel" class="hidden"><div class="panel"><button class="secondary" onclick="showView('map')">← Kartalle</button><h2 id="parcelTitle" style="margin-top:15px"></h2><div id="parcelMeta" class="muted"></div><div class="actions" style="margin-top:12px"><button onclick="newAction()">+ Kirjaa toimenpide</button><button class="secondary" onclick="editParcel()">Muokkaa nimeä</button></div></div><div class="panel"><h2>Toimenpidehistoria</h2><div id="parcelActions"></div></div></section>
@@ -55,11 +60,11 @@ let leafletMap=null,ownLayer=null,remoteLayer=null,remoteFeatures=[],mapStarted=
 function initMap(){
  if(leafletMap||!window.L){if(!window.L)$('mapMessage').textContent='Karttakirjaston lataus epäonnistui. Päivitä sivu.';return;}
  leafletMap=L.map('map',{zoomAnimation:false,fadeAnimation:false,markerZoomAnimation:false,preferCanvas:false}).setView([61.7,26.8],9);
- leafletMap.createPane('forestPane');leafletMap.getPane('forestPane').style.zIndex='450';
- leafletMap.createPane('ownForestPane');leafletMap.getPane('ownForestPane').style.zIndex='460';
+ 
+ 
  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(leafletMap);
- ownLayer=L.geoJSON(null,{pane:'ownForestPane',renderer:L.svg({pane:'ownForestPane'}),style:{color:'#146c43',weight:3,fillColor:'#66a66c',fillOpacity:.3},onEachFeature:(f,l)=>l.on('click',()=>openParcel(f.properties.localId))}).addTo(leafletMap);
- remoteLayer=L.geoJSON(null,{pane:'forestPane',renderer:L.svg({pane:'forestPane'}),style:{color:'#d96a0b',weight:3,fillColor:'#f6a623',fillOpacity:.32},onEachFeature:(f,l)=>l.on('click',()=>{
+ ownLayer=L.geoJSON(null,{style:{color:'#146c43',weight:3,fillColor:'#66a66c',fillOpacity:.3},onEachFeature:(f,l)=>l.on('click',()=>openParcel(f.properties.localId))}).addTo(leafletMap);
+ remoteLayer=L.geoJSON(null,{style:{color:'#d96a0b',weight:3,fillColor:'#f6a623',fillOpacity:.32},onEachFeature:(f,l)=>l.on('click',()=>{
  const name=String(f.properties?.standnumber??f.properties?.stand_number??f.properties?.id??f.id??'Metsäkuvio');
  if(!confirm('Lisätäänkö metsäkuvio '+name+' omiin palstoihin? Varmista että alue on sinun.'))return;
  const sourceId=String(f.id??f.properties?.id??'');if(sourceId&&db.parcels.some(p=>p.sourceId===sourceId)){alert('Kuvio on jo tallennettu.');return;}
